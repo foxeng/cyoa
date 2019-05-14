@@ -30,19 +30,20 @@ func (h StoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("arc = %s\n", key)
 	story, ok := h.stories[key]
 	if !ok {
-		log.Printf("story not found\n")
-		w.WriteHeader(http.StatusNotFound)
+		http.Error(w, "Story not found", http.StatusNotFound)
 		return
 	}
 
 	storyb, err := encodeStory(story)
 	if err != nil {
-		// TODO OPT: Or log.Print and return 500?
-		log.Panicf("encoding: %v\n", err)
+		log.Printf("encoding: %v\n", err)
+		http.Error(w, "Failed to encode the story", http.StatusInternalServerError)
+		return
 	}
 	if _, err := w.Write(storyb); err != nil { // NOTE: Ignoring the # of bytes written
-		// TODO OPT: Or log.Print and return 500?
-		log.Panicf("writing: %v\n", err)
+		log.Printf("writing: %v\n", err)
+		http.Error(w, "Failed to write the story", http.StatusInternalServerError)
+		return
 	}
 }
 
